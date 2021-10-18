@@ -43,7 +43,7 @@ def write_vars():
     var_template = '''
 {% for i in variables -%}
 variable "{{ i }}" {
-    type = ""
+    type = 
     description = ""
     default = ""
 }
