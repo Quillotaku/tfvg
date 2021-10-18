@@ -3,7 +3,7 @@ Generates all variables from your .tf files into a variables.tf file.
 It searches for every var.variable_name in your .tf files and generates a variables.tf file with the following for every variable:
 
 ```hcl
-variable "variable_name {
+variable "variable_name" {
     type = ""
     description = ""
     default = ""
