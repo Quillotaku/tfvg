@@ -4,7 +4,7 @@ It searches for every var.variable_name in your .tf files and generates a variab
 
 ```hcl
 variable "variable_name" {
-    type = ""
+    type = 
     description = ""
     default = ""
 }
