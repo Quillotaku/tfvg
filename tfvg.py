@@ -1,8 +1,11 @@
+#!python3
 import glob
 import re
 from jinja2 import Template
 import sys
 import os
+
+#add option to delete deleted variables only
 
 def get_template(tpl):
     if tpl == "var_with_default":
@@ -31,11 +34,11 @@ variable "{{ i }}" {
 '''
     elif tpl == "empty":
         var_template = '''
-    {% for i in variables -%}
-    variable "{{ i }}" {}
+{% for i in variables -%}
+variable "{{ i }}" {}
 
-    {% endfor -%}
-    '''
+{% endfor -%}
+'''
     return var_template
 
 def help():
@@ -88,12 +91,16 @@ def get_vars():
             for line in tf:
                 if re.search('var\..*', line):
                     if not re.search('\${', line):
-                        variables += [line.replace(',','').strip().split('.')[1]]
+                        if line.find(")") != -1:
+                            variables += [line.partition(')')[0].partition('var.')[2]]
+                        else:
+                            variables += [line.replace(',','').strip().split('.')[1]]
                     if re.search('\${', line):
                         variables += re.findall('var\.\w+\}', line)
     for vars in variables:
         clean_vars += [vars.replace('var.', '').replace('}','')]
     clean_vars = list(set(clean_vars))
+    clean_vars.sort()
     return clean_vars
 
 def check_var_file():
@@ -114,7 +121,9 @@ def clear_vars():
     current_vars = check_vars()
     got_vars = get_vars()
     add_vars = set(got_vars) - set(current_vars)
-    return list(add_vars)
+    add_vars = list(add_vars)
+    add_vars.sort()
+    return add_vars
 
 def write_vars():
     try:
@@ -125,11 +134,10 @@ def write_vars():
     try:
         sys.argv.index("--retemplate")
         os.remove("variables.tf")
-        with open(file='variables.tf', encoding='UTF-8', mode='a') as var_file:
-            var_file.write(Template(var_template).render(variables=clear_vars()))
     except:
-        with open(file='variables.tf', encoding='UTF-8', mode='a') as var_file:
-            var_file.write(Template(var_template).render(variables=clear_vars()))
+        pass
+    with open(file='variables.tf', encoding='UTF-8', mode='a') as var_file:
+        var_file.write(Template(var_template).render(variables=clear_vars()))
 
 def pretty_output():
     lines = []
