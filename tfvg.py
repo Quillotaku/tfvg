@@ -1,6 +1,7 @@
-#!python3
+#!/usr/bin/python3
 import glob
 import re
+import string
 from jinja2 import Template
 import sys
 import os
@@ -83,25 +84,19 @@ def help():
         pass
 
 def get_vars():
-    variables = []
-    clean_vars = []
+    normal_var = r'\bvar\.([\w-]+)\b'
+    string_var = r'\$\{var\.([\w-]+)\}'
+    ternary_var = r'\bvar\.([\w-]+)\s*==\s*\w+\s*\?\s*var\.\w+\s*:\s*\w+'
+    all_matches = set()
     filenames = glob.glob('*.tf')
     for file in filenames:
         with open(file=file, encoding='UTF-8', mode='r') as tf:
-            for line in tf:
-                if re.search('var\..*', line):
-                    if not re.search('\${', line):
-                        if line.find(")") != -1:
-                            variables += [line.partition(')')[0].partition('var.')[2]]
-                        else:
-                            variables += [line.replace(',','').strip().split('.')[1]]
-                    if re.search('\${', line):
-                        variables += re.findall('var\.\w+\}', line)
-    for vars in variables:
-        clean_vars += [vars.replace('var.', '').replace('}','')]
-    clean_vars = list(set(clean_vars))
-    clean_vars.sort()
-    return clean_vars
+            tf_file = tf.read()
+            normal_var_match = re.findall(normal_var, tf_file)
+            string_var_match = re.findall(string_var, tf_file)
+            ternary_var_match = re.findall(ternary_var, tf_file)
+            all_matches.update(normal_var_match + string_var_match + ternary_var_match)
+    return all_matches
 
 def check_var_file():
     if glob.glob('variables.tf') == []:
